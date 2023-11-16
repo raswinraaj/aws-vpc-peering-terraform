@@ -418,6 +418,7 @@ resource "aws_vpc_peering_connection" "peering_connection" {
     Name = "VPC Peering Connection"
   }
 }
+# ...
 
 # Configure security group in VPC-A to allow HTTP/HTTPS traffic to VPC-B
 resource "aws_security_group" "allow_outbound_to_vpc_b" {
@@ -429,16 +430,17 @@ resource "aws_security_group" "allow_outbound_to_vpc_b" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = [aws_vpc.vpc_b.cidr_block]
+    security_groups = [data.aws_security_group.allow_inbound_from_vpc_a.id]
   }
 
   ingress {
     from_port   = 80
     to_port     = 443
     protocol    = "-1"
-    security_groups = [aws_security_group.allow_inbound_from_vpc_a.id]
+    security_groups = [data.aws_security_group.allow_inbound_from_vpc_a.id]
   }
 }
+
 # Configure security group in VPC-B to allow inbound traffic from VPC-A
 resource "aws_security_group" "allow_inbound_from_vpc_a" {
   name        = "allow_inbound_from_vpc_a"
@@ -449,6 +451,16 @@ resource "aws_security_group" "allow_inbound_from_vpc_a" {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    security_groups = [aws_security_group.allow_outbound_to_vpc_b.id]
+    security_groups = [data.aws_security_group.allow_outbound_to_vpc_b.id]
   }
+}
+
+data "aws_security_group" "allow_inbound_from_vpc_a" {
+  name = "allow_inbound_from_vpc_a"
+  vpc_id = aws_vpc.vpc_b.id
+}
+
+data "aws_security_group" "allow_outbound_to_vpc_b" {
+  name = "allow_outbound_to_vpc_b"
+  vpc_id = aws_vpc.vpc_a.id
 }
