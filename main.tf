@@ -1,8 +1,3 @@
-# Define provider (AWS in this case)
-provider "aws" {
-  region = "us-east-1" # Change this to your desired region
-}
-
 # Create VPC-A
 resource "aws_vpc" "vpc_a" {
   cidr_block = "10.0.0.0/16"
